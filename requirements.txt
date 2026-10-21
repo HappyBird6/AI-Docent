@@ -1,0 +1,13 @@
+# 설치: pip install -r requirements.txt
+
+# HTML/CSS/JS 화면을 제공하는 API 서버 (요구사항 정의서의 심화 스택)
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+
+# 기존 GMS LLM 연결
+langchain-openai==1.4.3
+langchain-core==1.6.0
+python-dotenv==1.2.3
+
+# 외부 문서 수집용
+requests==2.34.2

@@ -1,0 +1,59 @@
+{
+  "generated_at": "2026-10-21T02:44:39.133945+00:00",
+  "artworks": 100,
+  "documents": 221,
+  "document_counts": {
+    "artwork": 100,
+    "artist": 57,
+    "style": 14,
+    "historical_context": 50
+  },
+  "date_buckets": {
+    "1500": 10,
+    "1400": 13,
+    "1600": 20,
+    "1700": 17,
+    "1800": 39,
+    "1900": 1
+  },
+  "unique_artist_attributions": 59,
+  "unique_artist_article_titles": 57,
+  "artworks_with_artist_document": 100,
+  "artworks_with_style_document": 100,
+  "missing_artist_articles": [],
+  "missing_style_articles": [],
+  "unmapped_style_tags": {
+    "sixteenth century": 6,
+    "16th Century": 10,
+    "15th century": 13,
+    "17th Century": 20,
+    "dutch": 1,
+    "18th Century": 17,
+    "19th century": 39,
+    "nineteenth century": 31,
+    "20th Century": 1
+  },
+  "network_calls_this_run": 0,
+  "cache_hits_this_run": 22,
+  "validation": "passed",
+  "limitations": [
+    "English source text; Korean labels and translation have not been prepared.",
+    "Artist articles are linked by titles, curated aliases and redirects; identity requires human review.",
+    "Most Wikipedia documents contain introductory sections; short artist leads are supplemented with full articles.",
+    "Museum style tags mix periods, techniques and movements, and allow multiple tags.",
+    "No movement is inferred from the creation date; this starter set selects works with mapped museum tags.",
+    "Image URLs are supplied; image binaries and availability of every image are not verified.",
+    "This is a seed corpus, not the required question-driven LLM search/selection pipeline."
+  ],
+  "updated_at": "2026-10-21T06:59:58.529312+00:00",
+  "supplements": {
+    "openlearn": {
+      "documents": 50,
+      "courses": 3,
+      "license": "CC-BY-NC-SA-4.0",
+      "report": "openlearn_collection_report.json",
+      "rag_connected": false
+    }
+  },
+  "base_collection_statistics_note": "Original network/cache and artwork mapping statistics describe the initial museum/Wikipedia collection."
+}

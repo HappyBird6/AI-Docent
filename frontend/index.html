@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#faf8f4">
+  <meta name="description" content="한 점씩 천천히 만나는 미술 작품. AI Docent 온라인 전시관.">
+  <title>AI Docent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/gallery.css">
+  <link rel="stylesheet" href="/static/docent.css">
+  <script src="/static/docent.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <div id="ai-docent-gallery">
+    <header class="gallery-header"><h1>AI Docent</h1></header>
+    <main class="gallery-room" aria-label="미술 작품 전시관" aria-busy="true">
+      <div class="wall-grain" aria-hidden="true"></div>
+      <div class="gallery-floor" aria-hidden="true"></div>
+      <div class="gallery-rail"></div>
+      <button class="gallery-arrow prev" type="button" aria-label="이전 작품" disabled><span class="arrow-icon" aria-hidden="true"></span></button>
+      <button class="gallery-arrow next" type="button" aria-label="다음 작품" disabled><span class="arrow-icon" aria-hidden="true"></span></button>
+      <div id="gallery-notice" class="gallery-notice" role="status">
+        <p id="gallery-notice-text">작품을 불러오는 중입니다.</p>
+        <button id="gallery-retry" type="button" hidden>다시 불러오기</button>
+      </div>
+      <p id="gallery-status" class="gallery-sr" role="status" aria-live="polite" aria-atomic="true"></p>
+    </main>
+    <button id="docent-launcher" class="docent-launcher" type="button" aria-controls="docent-panel" aria-expanded="false" disabled>
+      <span class="docent-symbol" aria-hidden="true"></span>도슨트
+    </button>
+    <aside id="docent-panel" class="docent-panel" aria-labelledby="docent-title" aria-hidden="true" inert>
+      <div class="docent-sheet-handle" aria-hidden="true"></div>
+      <header class="docent-heading">
+        <h2 id="docent-title">도슨트</h2>
+        <button id="docent-close" class="docent-icon-button" type="button" aria-label="도슨트 접기">×</button>
+      </header>
+      <div class="docent-tabs" role="tablist" aria-label="도슨트 보기">
+        <button id="conversation-tab" role="tab" type="button" aria-selected="true" aria-controls="docent-conversation">대화</button>
+        <button id="history-tab" role="tab" type="button" aria-selected="false" aria-controls="docent-history" tabindex="-1">히스토리 <span id="history-count"></span></button>
+      </div>
+      <section id="docent-conversation" class="docent-conversation" role="tabpanel" aria-labelledby="conversation-tab">
+        <div class="docent-current-work">
+          <p class="docent-eyebrow">지금 보고 있는 작품</p>
+          <h3 id="docent-artwork-title"></h3>
+          <p id="docent-artwork-credit"></p>
+        </div>
+        <div id="docent-messages" class="docent-messages" role="log" aria-label="현재 작품의 대화" aria-live="polite" aria-relevant="additions"></div>
+        <form id="docent-form" class="docent-form">
+          <label class="gallery-sr" for="docent-question">현재 작품에 대해 질문하기</label>
+          <div class="docent-input-wrap">
+            <textarea id="docent-question" rows="1" maxlength="2000" placeholder="이 작품이 궁금하다면…"></textarea>
+            <button id="docent-send" type="submit" aria-label="질문 보내기" disabled>↑</button>
+          </div>
+          <p id="docent-save-note" class="docent-preview-note" role="status">대화는 이 브라우저에 저장됩니다</p>
+        </form>
+      </section>
+      <section id="docent-history" class="docent-history" role="tabpanel" aria-labelledby="history-tab" hidden>
+        <div class="docent-history-intro"><p>다시 만나는 작품과 대화</p><span>기록을 누르면 별도 창에서 열립니다.</span></div>
+        <div id="docent-history-list" class="docent-history-list"></div>
+      </section>
+    </aside>
+    <section id="history-window" class="history-window" aria-labelledby="history-window-title" hidden>
+      <header id="history-window-bar" class="history-window-bar">
+        <h2 id="history-window-title"><span aria-hidden="true">↗</span> 대화 기록</h2>
+        <button id="history-window-close" class="docent-icon-button" type="button" aria-label="대화 기록 창 닫기">×</button>
+      </header>
+      <div class="history-window-body">
+        <figure class="history-artwork">
+          <div id="history-artwork-image" class="history-artwork-image"></div>
+          <figcaption><h3 id="history-artwork-title"></h3><p id="history-artwork-artist"></p><p id="history-artwork-year"></p></figcaption>
+        </figure>
+        <div class="history-conversation-heading"><h3>작품과 나눈 대화</h3></div>
+        <div id="history-window-messages" class="history-window-messages" aria-label="선택한 작품의 대화 기록"></div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

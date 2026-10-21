@@ -1,0 +1,37 @@
+/* Production layout and real-image states, on top of the approved gallery design. */
+:root { color-scheme:light; --header-height:86px; --floor-height:88px; --art-max-width:min(60vw,640px); --art-max-height:min(43svh,400px); }
+body { margin:0; background:#faf8f4; font-synthesis:none; }
+[hidden] { display:none!important; }
+#ai-docent-gallery .gallery-header { height:var(--header-height); }
+#ai-docent-gallery .gallery-room { height:calc(100svh - var(--header-height)); min-height:580px; }
+#ai-docent-gallery .gallery-rail { height:calc(100% - var(--floor-height)); }
+#ai-docent-gallery .gallery-floor { height:var(--floor-height); }
+#ai-docent-gallery .wall-grain { bottom:var(--floor-height); }
+#ai-docent-gallery .exhibit { padding:28px 65px 35px; gap:25px; }
+#ai-docent-gallery .frame { width:auto; height:auto; max-width:100%; }
+#ai-docent-gallery .frame-rim,#ai-docent-gallery .frame-mat,#ai-docent-gallery .paint-canvas { width:auto; height:auto; }
+#ai-docent-gallery .artwork-image { display:block; width:auto; height:auto; max-width:var(--art-max-width); max-height:var(--art-max-height); object-fit:contain; }
+#ai-docent-gallery .image-loading,#ai-docent-gallery .image-error { width:min(var(--art-max-width),340px); min-height:min(var(--art-max-height),230px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:22px; color:#817766; background:#e6e0d1; text-align:center; font-size:12px; line-height:1.9; }
+#ai-docent-gallery .image-error p { margin:0; }
+#ai-docent-gallery .image-error a { color:#665940; text-underline-offset:4px; }
+#ai-docent-gallery .painting-label { max-width:min(76vw,680px); overflow-wrap:anywhere; }
+#ai-docent-gallery .painting-title { text-wrap:balance; }
+#ai-docent-gallery .gallery-arrow { top:calc((100% - var(--floor-height))/2 - 22px); cursor:pointer; }
+#ai-docent-gallery .gallery-arrow:disabled { opacity:.25; cursor:default; }
+#ai-docent-gallery .arrow-icon { width:7px; height:7px; border-top:1px solid currentColor; border-right:1px solid currentColor; transform:rotate(45deg); margin-right:3px; }
+#ai-docent-gallery .prev .arrow-icon { transform:rotate(-135deg); margin-left:5px; margin-right:0; }
+#ai-docent-gallery .gallery-notice { position:absolute; inset:0 65px var(--floor-height); display:flex; flex-direction:column; justify-content:center; align-items:center; gap:14px; text-align:center; color:#817766; font-size:13px; line-height:1.9; }
+#ai-docent-gallery .gallery-notice p { margin:0; }
+#ai-docent-gallery .gallery-notice button { font:inherit; cursor:pointer; border:1px solid #b4a58c; color:#665940; background:#faf8f4; padding:9px 14px; border-radius:3px; }
+#ai-docent-gallery button:focus-visible,#ai-docent-gallery a:focus-visible { outline:2px solid #8c7655; outline-offset:5px; }
+#ai-docent-gallery .gallery-room.is-dragging { transition:none; user-select:none; }
+@media(max-width:700px){
+ :root { --header-height:75px; --floor-height:80px; --art-max-width:calc(100vw - 150px); --art-max-height:min(42svh,340px); }
+ #ai-docent-gallery .gallery-room { min-height:560px; }
+ #ai-docent-gallery .exhibit { padding:26px 55px 30px; gap:24px; }
+}
+@media(max-width:420px){
+ :root { --header-height:72px; --floor-height:70px; --art-max-width:calc(100vw - 130px); }
+ #ai-docent-gallery .gallery-room { min-height:530px; }
+ #ai-docent-gallery .exhibit { padding:24px 43px 28px; }
+}

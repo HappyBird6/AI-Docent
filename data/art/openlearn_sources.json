@@ -1,0 +1,41 @@
+[
+  {
+    "slug": "early-modern-europe",
+    "title": "Early modern Europe: an introduction",
+    "authors": ["Deborah Brunton"],
+    "course_url": "https://www.open.edu/openlearn/history-the-arts/early-modern-europe-introduction/content-section-0",
+    "license": "CC-BY-NC-SA-4.0",
+    "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "license_evidence_url": "https://www.open.edu/openlearn/history-the-arts/early-modern-europe-introduction/content-section---acknowledgements",
+    "rights_scope": "Course author narrative only; third-party material and separately noted material excluded.",
+    "explicit_third_party_exclusions": ["All third-party images and their captions/descriptions", "Activity 4 text: copyright 1965 Methuen and Company Limited, reproduced by permission of Taylor & Francis UK", "Other quoted passages and entire paragraphs containing inline quotations"],
+    "context_tags": ["early modern Europe", "1500-1780", "social order", "Reformation", "Counter-Reformation", "work and trade", "knowledge and science"],
+    "license_conditions": ["Attribution and source/license links", "Indicate selection, omissions and formatting changes", "Noncommercial use only", "Share adapted material under the same license when distributed"]
+  },
+  {
+    "slug": "dutch-painting",
+    "title": "Dutch painting of the Golden Age",
+    "authors": ["Jason Gaiger"],
+    "course_url": "https://www.open.edu/openlearn/history-the-arts/dutch-painting-the-golden-age/content-section-0",
+    "license": "CC-BY-NC-SA-4.0",
+    "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "license_evidence_url": "https://www.open.edu/openlearn/mod/oucontent/view.php?id=64770&section=__acknowledgements",
+    "rights_scope": "Course author narrative only; third-party material and separately noted material excluded.",
+    "explicit_third_party_exclusions": ["All third-party images and their captions/descriptions", "Extracts from Eugene Fromentin, The Masters of Past Time (1948 [1876]), translated by A. Boyle, Phaidon", "Other quoted passages and entire paragraphs containing inline quotations"],
+    "context_tags": ["Dutch Republic", "seventeenth century", "Calvinism", "trade", "art market", "genre painting", "realism", "interpretation"],
+    "license_conditions": ["Attribution and source/license links", "Indicate selection, omissions and formatting changes", "Noncommercial use only", "Share adapted material under the same license when distributed"]
+  },
+  {
+    "slug": "enlightenment",
+    "title": "The Enlightenment",
+    "authors": ["Linda Walsh", "Tony Lentin"],
+    "course_url": "https://www.open.edu/openlearn/history-the-arts/history-art/the-enlightenment/content-section-0/",
+    "license": "CC-BY-NC-SA-4.0",
+    "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "license_evidence_url": "https://www.open.edu/openlearn/history-the-arts/history-art/the-enlightenment/content-section---acknowledgements",
+    "rights_scope": "Course author narrative only; third-party material and separately noted material excluded.",
+    "explicit_third_party_exclusions": ["All third-party images and their captions/descriptions", "All external quotations and entire paragraphs containing inline quotations", "Video/audio transcripts, activities and supplied source extracts"],
+    "context_tags": ["Enlightenment", "eighteenth-century Europe", "reason", "empiricism", "classicism", "French Revolution", "Romanticism"],
+    "license_conditions": ["Attribution and source/license links", "Indicate selection, omissions and formatting changes", "Noncommercial use only", "Share adapted material under the same license when distributed"]
+  }
+]
