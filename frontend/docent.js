@@ -3,7 +3,9 @@
   const $ = (id) => document.getElementById(id);
   const launcher = $("docent-launcher"), panel = $("docent-panel");
   const conversationTab = $("conversation-tab"), historyTab = $("history-tab");
+  const exploreTab = $("explore-tab");
   const question = $("docent-question"), send = $("docent-send");
+  const guide = $("docent-guide");
   const messages = $("docent-messages"), historyList = $("docent-history-list");
   const historyWindow = $("history-window"), windowBar = $("history-window-bar");
   const storageKey = "ai-docent.conversations.v1";
@@ -12,7 +14,56 @@
   const previewAnswer = "질문을 기록했어요. 이곳에 작품·작가·시대 배경을 바탕으로 한 도슨트의 답변이 표시될 예정입니다.";
   let currentArtwork = null, historyArtworkId = null, historyOpener = null, windowDrag = null;
 
-  class ChatRequestError extends Error {}
+  const { ChatRequestError, readChatStream } = window.DocentStream;
+  let statusRequest = 0;
+
+  async function refreshServiceNotice() {
+    const request = ++statusRequest;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch("/api/docent/status", { signal: controller.signal, cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (request !== statusRequest || !Array.isArray(data.issues)) return;
+      const notices = data.issues.slice(0, 4).filter((issue) => typeof issue?.message === "string")
+        .map((issue) => issue.message.slice(0, 350));
+      $("docent-service-note").textContent = notices.join("\n");
+      $("docent-service-note").hidden = !notices.length;
+    } catch { /* Normal requests retain their connection and retry message. */ }
+    finally { clearTimeout(timeout); }
+  }
+
+  function progressText(message) {
+    const progress = message.progress;
+    if (!progress) return "서버에 연결하고 있어요…";
+    return progress.message + (progress.current && progress.total ? ` (${progress.current}/${progress.total})` : "");
+  }
+
+  function updateProgress(id, message, event) {
+    if (message.delivery !== "pending" || event.artwork_id !== id ||
+        typeof event.message !== "string" || event.message.length > 300) return;
+    const titles = Array.isArray(event.titles) ? event.titles.filter((title) => typeof title === "string")
+      .slice(0, 4).map((title) => title.slice(0, 160)) : message.progress?.titles || [];
+    message.progress = { message: event.message, titles,
+      current: Number.isInteger(event.current) ? event.current : null,
+      total: Number.isInteger(event.total) ? event.total : null };
+    // Preserve open source details and the user's scroll position.
+    for (const container of [messages, $("history-window-messages")]) {
+      const following = container.scrollHeight - container.clientHeight - container.scrollTop < 12;
+      for (const item of container.children) {
+        if (item.dataset.messageId !== message.id) continue;
+        const label = item.querySelector(".docent-delivery.pending");
+        const documents = item.querySelector(".docent-progress-documents");
+        if (label) label.textContent = progressText(message);
+        if (documents) {
+          documents.textContent = titles.length ? `준비한 문서 · ${titles.join(" · ")}` : "";
+          documents.hidden = !titles.length;
+        }
+      }
+      if (following) container.scrollTop = container.scrollHeight;
+    }
+  }
 
   function element(tag, className, text) {
     const node = document.createElement(tag);
@@ -112,7 +163,7 @@
           .slice(-200).map((message) => ({
             id: typeof message.id === "string" ? message.id.slice(0, 100) : crypto.randomUUID(),
             role: message.role, content: message.content.slice(0, 20000),
-            kind: message.kind === "preview" || message.content === previewAnswer ? "preview" : "chat",
+            kind: message.kind === "guide" ? "guide" : message.kind === "preview" || message.content === previewAnswer ? "preview" : "chat",
             mode: message.mode === "rag" ? "rag" : "llm",
             sources: message.role === "assistant" && message.mode === "rag" ? sourceData(message.sources) : [],
             delivery: ["pending", "failed"].includes(message.delivery) ? "failed" : "sent",
@@ -144,9 +195,12 @@
     image.hidden = true;
     const fallback = element("span", "docent-image-fallback", compact ? "◇" : "이미지를 불러오는 중입니다.");
     let candidate = 0;
-    const candidates = [...new Set(artwork.image_candidates || [])].filter((value) => {
-      try { return ["http:", "https:"].includes(new URL(value).protocol); } catch { return false; }
-    });
+    const candidates = [...new Set(artwork.image_candidates || [])].map((value) => {
+      try {
+        const url = new URL(value, location.origin);
+        return ["http:", "https:"].includes(url.protocol) ? url.href : null;
+      } catch { return null; }
+    }).filter(Boolean);
     const loadNext = () => {
       if (candidate < candidates.length) image.src = candidates[candidate++];
       else { fallback.textContent = compact ? "◇" : "이미지를 불러오지 못했습니다."; }
@@ -160,13 +214,16 @@
 
   function messageNode(message, artworkId, allowRetry = false) {
     const item = element("div", `docent-message ${message.role}`);
+    item.dataset.messageId = message.id;
     item.append(element("span", "docent-message-author", message.role === "user" ? "나" :
-      (message.kind === "preview" ? "도슨트 · 이전 미리보기" : message.mode === "rag" ? "도슨트 · 문서 기반" : "도슨트 · 이전 일반 AI 답변")));
+      (message.kind === "preview" ? "도슨트 · 이전 미리보기" : message.kind === "guide" ? "도슨트 · 감상 가이드" : message.mode === "rag" ? "도슨트 · 문서 기반" : "도슨트 · 이전 일반 AI 답변")));
     evidenceNodes(message, item);
     if (message.role === "user" && message.delivery === "pending") {
-      const progress = element("p", "docent-delivery pending", "답변을 준비하고 있어요…");
+      const progress = element("p", "docent-delivery pending", progressText(message));
       progress.setAttribute("role", "status");
-      item.append(progress);
+      const documents = element("p", "docent-progress-documents", message.progress?.titles?.length ? `준비한 문서 · ${message.progress.titles.join(" · ")}` : "");
+      documents.hidden = !message.progress?.titles?.length;
+      item.append(progress, documents);
     } else if (message.role === "user" && message.delivery === "failed") {
       const failure = element("div", "docent-delivery failed");
       failure.append(element("p", "", message.error));
@@ -242,6 +299,7 @@
   function updateInput() {
     const pending = currentArtwork && pendingRequests.has(currentArtwork.id);
     send.disabled = !currentArtwork || !question.value.trim() || pending;
+    guide.disabled = !currentArtwork || pending;
     send.textContent = pending ? "·" : "↑";
     send.setAttribute("aria-label", pending ? "답변 기다리는 중" : "질문 보내기");
     messages.setAttribute("aria-busy", String(Boolean(pending)));
@@ -250,15 +308,18 @@
   }
 
   function submitQuestion() {
-    const content = question.value.trim();
+    submitMessage(question.value.trim(), "chat");
+  }
+
+  function submitMessage(content, kind) {
     if (!currentArtwork || !content || pendingRequests.has(currentArtwork.id)) return;
     const id = currentArtwork.id;
     const record = conversations.get(id) || { messages: [] };
-    const userMessage = { id: crypto.randomUUID(), role: "user", content: content.slice(0, 2000), createdAt: Date.now(), kind: "chat" };
+    const userMessage = { id: crypto.randomUUID(), role: "user", content: content.slice(0, 2000), createdAt: Date.now(), kind };
     record.messages.push(userMessage);
     record.messages = record.messages.slice(-200);
     conversations.set(id, record);
-    drafts.delete(id);
+    if (kind === "chat") drafts.delete(id);
     requestAnswer(id, userMessage);
   }
 
@@ -280,35 +341,36 @@
     const controller = new AbortController();
     pendingRequests.set(id, controller);
     userMessage.delivery = "pending";
+    delete userMessage.progress;
     delete userMessage.error;
     persist();
     refreshArtwork(id);
     const timeout = setTimeout(() => controller.abort(), 130000);
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch("/api/chat/stream", {
         method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
-        body: JSON.stringify({ artwork_id: id, question: userMessage.content, history }),
+        body: JSON.stringify({ artwork_id: id, question: userMessage.content, history,
+          ...(userMessage.kind === "guide" ? { feature: "guide" } : {}) }),
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new ChatRequestError(typeof data.detail === "string" ? data.detail.slice(0, 300) : "질문을 보내지 못했습니다. 내용을 확인하고 다시 보내 주세요.");
-      }
+      const data = await readChatStream(response, id, (event) => updateProgress(id, userMessage, event));
       if (data.artwork_id !== id || typeof data.answer !== "string" || !data.answer.trim() || data.answer.length > 20000) {
         throw new ChatRequestError("답변을 불러오지 못했습니다. 다시 보내 주세요.");
       }
       userMessage.delivery = "sent";
       record.messages.splice(record.messages.indexOf(userMessage) + 1, 0, {
-        id: crypto.randomUUID(), role: "assistant", content: data.answer.trim(), createdAt: Date.now(), kind: "chat",
+        id: crypto.randomUUID(), role: "assistant", content: data.answer.trim(), createdAt: Date.now(), kind: userMessage.kind === "guide" ? "guide" : "chat",
         mode: data.mode === "rag" ? "rag" : "llm", sources: data.mode === "rag" ? sourceData(data.sources) : [],
       });
       record.messages = record.messages.slice(-200);
     } catch (error) {
       userMessage.delivery = "failed";
+      refreshServiceNotice();
       userMessage.error = error.name === "AbortError" ? "답변 시간이 길어지고 있습니다. 다시 보내 주세요." :
         (error instanceof ChatRequestError ? error.message : "서버에 연결하지 못했습니다. 연결 상태를 확인하고 다시 보내 주세요.");
     } finally {
       clearTimeout(timeout);
       pendingRequests.delete(id);
+      delete userMessage.progress;
       persist();
       // A late response belongs to the artwork that was submitted, even after navigation.
       refreshArtwork(id);
@@ -316,15 +378,16 @@
   }
 
   function setTab(history, focus = false) {
-    conversationTab.setAttribute("aria-selected", String(!history));
-    historyTab.setAttribute("aria-selected", String(history));
-    conversationTab.tabIndex = history ? -1 : 0;
-    historyTab.tabIndex = history ? 0 : -1;
-    $("docent-conversation").hidden = history;
-    $("docent-history").hidden = !history;
-    if (history) renderHistory();
-    else updateInput();
-    if (focus) (history ? historyTab : conversationTab).focus();
+    const selected = history === "explore" ? exploreTab : history ? historyTab : conversationTab;
+    for (const tab of [conversationTab, exploreTab, historyTab]) {
+      const active = tab === selected;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+      $(tab.getAttribute("aria-controls")).hidden = !active;
+    }
+    if (selected === historyTab) renderHistory();
+    else if (selected === conversationTab) updateInput();
+    if (focus) selected.focus();
   }
 
   function setOpen(open) {
@@ -332,7 +395,7 @@
     panel.inert = !open;
     panel.setAttribute("aria-hidden", String(!open));
     launcher.setAttribute("aria-expanded", String(open));
-    if (open) $("docent-close").focus({ preventScroll: true });
+    if (open) { $("docent-close").focus({ preventScroll: true }); refreshServiceNotice(); }
     else launcher.focus({ preventScroll: true });
   }
 
@@ -369,15 +432,88 @@
   $("history-window-close").addEventListener("click", closeHistory);
   conversationTab.addEventListener("click", () => setTab(false));
   historyTab.addEventListener("click", () => setTab(true));
+  exploreTab.addEventListener("click", () => setTab("explore"));
   panel.querySelector(".docent-tabs").addEventListener("keydown", (event) => {
     if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
-    setTab(event.key === "End" || (event.key !== "Home" && historyTab.getAttribute("aria-selected") !== "true"), true);
+    const tabs = [conversationTab, exploreTab, historyTab];
+    const index = tabs.findIndex((tab) => tab.getAttribute("aria-selected") === "true");
+    const next = event.key === "Home" ? 0 : event.key === "End" ? 2 : (index + (event.key === "ArrowRight" ? 1 : -1) + 3) % 3;
+    setTab([false, "explore", true][next], true);
+  });
+
+  const searchQuery = $("artwork-search-query"), searchSend = $("artwork-search-send");
+  const searchResults = $("artwork-search-results"), searchStatus = $("artwork-search-status");
+  let searching = false;
+  searchQuery.addEventListener("input", () => { searchSend.disabled = searching || !searchQuery.value.trim(); });
+  searchQuery.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
+      event.preventDefault();
+      $("artwork-search-form").requestSubmit();
+    }
+  });
+  $("artwork-search-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const query = searchQuery.value.trim();
+    if (!query || searching) return;
+    searching = true;
+    searchSend.disabled = true;
+    searchSend.textContent = "찾는 중";
+    searchStatus.textContent = "조건에 맞는 작품을 찾고 있어요…";
+    searchResults.replaceChildren();
+    searchResults.setAttribute("aria-busy", "true");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 160000);
+    try {
+      const response = await fetch("/api/artworks/search", {
+        method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
+        body: JSON.stringify({ query }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new ChatRequestError(typeof data.detail === "string" ? data.detail.slice(0, 300) : "작품을 찾지 못했습니다. 다시 시도해 주세요.");
+      if (!Array.isArray(data.results) || data.query !== query) throw new ChatRequestError("검색 결과를 불러오지 못했습니다.");
+      const seen = new Set();
+      const results = data.results.slice(0, 20).filter((result) => {
+        if (!catalog.has(result.id) || typeof result.reason !== "string" || seen.has(result.id)) return false;
+        seen.add(result.id);
+        return true;
+      });
+      searchStatus.textContent = results.length ? `조건에 맞는 작품 ${results.length}점` : "수집된 작품 중 조건을 확인할 수 있는 작품이 없습니다.";
+      for (const result of results) {
+        const artwork = catalog.get(result.id);
+        const card = element("article", "artwork-search-card");
+        const choose = element("button", "artwork-search-choose");
+        choose.type = "button";
+        choose.dataset.artworkId = artwork.id;
+        choose.setAttribute("aria-label", `${artwork.title} 작품 보고 대화하기`);
+        const detail = element("span", "artwork-search-detail");
+        detail.append(element("strong", "", artwork.title), element("span", "", `${artwork.artist} · ${artwork.date_display}`));
+        choose.append(artworkImage(artwork, true), detail, element("span", "", "→"));
+        choose.addEventListener("click", () => {
+          root.dispatchEvent(new CustomEvent("gallery:select", { detail: { artworkId: artwork.id } }));
+          setTab(false);
+          question.focus({ preventScroll: true });
+        });
+        card.append(choose, element("p", "artwork-search-reason", result.reason.slice(0, 600)));
+        if (safeURL(artwork.source_url)) card.append(externalLink("미술관 정보 ↗", safeURL(artwork.source_url)));
+        searchResults.append(card);
+      }
+    } catch (error) {
+      searchStatus.textContent = error.name === "AbortError" ? "검색 시간이 길어지고 있습니다. 다시 시도해 주세요." :
+        error instanceof ChatRequestError ? error.message : "서버에 연결하지 못했습니다. 다시 시도해 주세요.";
+    } finally {
+      clearTimeout(timeout);
+      searching = false;
+      searchSend.textContent = "찾기";
+      searchSend.disabled = !searchQuery.value.trim();
+      searchResults.setAttribute("aria-busy", "false");
+    }
   });
   question.addEventListener("input", () => {
     if (currentArtwork) drafts.set(currentArtwork.id, question.value);
     updateInput();
   });
+  guide.addEventListener("click", () => submitMessage("현재 작품의 문서를 바탕으로 작품 감상 가이드를 만들어줘.", "guide"));
   question.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
       event.preventDefault();

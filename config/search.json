@@ -1,0 +1,20 @@
+{
+  "metadata_collection": "artwork_metadata",
+  "persist_directory": ".cache/chroma",
+  "embedding_model": "text-embedding-3-small",
+  "embedding_batch_size": 32,
+  "candidate_count": 30,
+  "max_results": 8,
+  "document_collection": "artwork_documents",
+  "document_chunk_size": 1000,
+  "document_chunk_overlap": 200,
+  "retrieval_top_k": 6,
+  "retrieval_max_sources": 5,
+  "retrieval_chunks_per_source": 2,
+  "retrieval_max_distance": 0.9,
+  "collection_cache_directory": ".cache/collection",
+  "external_queries": 2,
+  "external_candidates_per_query": 4,
+  "external_max_selected": 3,
+  "external_min_chars": 300
+}

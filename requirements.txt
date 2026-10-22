@@ -5,9 +5,15 @@ fastapi==0.141.1
 uvicorn[standard]==0.52.4
 
 # 기존 GMS LLM 연결
+openai==2.54.0
 langchain-openai==1.4.3
 langchain-core==1.6.0
+langgraph==1.2.10
 python-dotenv==1.2.3
 
 # 외부 문서 수집용
 requests==2.34.2
+
+# 작품 메타데이터 임베딩·영구 Vector DB (F2002 / F2011)
+chromadb==1.5.9
+filelock==4.2.4

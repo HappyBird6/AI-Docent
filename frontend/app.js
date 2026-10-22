@@ -19,7 +19,7 @@
 
   function safeUrl(value) {
     try {
-      const url = new URL(value);
+      const url = new URL(value, location.origin);
       return ["http:", "https:"].includes(url.protocol) ? url.href : null;
     } catch { return null; }
   }
@@ -154,6 +154,18 @@
   });
   previousButton.addEventListener("click", () => navigate(-1));
   nextButton.addEventListener("click", () => navigate(1));
+  root.addEventListener("gallery:select", (event) => {
+    const index = artworks.findIndex((artwork) => artwork.id === event.detail?.artworkId);
+    if (index < 0) return;
+    clearTimeout(completion);
+    pending = null;
+    queued = 0;
+    drag = null;
+    room.classList.remove("is-dragging");
+    current = index;
+    renderWindow();
+    try { localStorage.setItem(storageKey, artworks[current].id); } catch { /* Optional preference. */ }
+  });
   document.addEventListener("keydown", (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey || event.target.isContentEditable || event.target.closest("input, textarea, select, .docent-panel, .history-window")) return;
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {

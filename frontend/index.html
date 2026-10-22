@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="/static/gallery.css">
   <link rel="stylesheet" href="/static/docent.css">
+  <script src="/static/chat-stream.js" defer></script>
   <script src="/static/docent.js" defer></script>
   <script src="/static/app.js" defer></script>
 </head>
@@ -40,6 +41,7 @@
       </header>
       <div class="docent-tabs" role="tablist" aria-label="도슨트 보기">
         <button id="conversation-tab" role="tab" type="button" aria-selected="true" aria-controls="docent-conversation">대화</button>
+        <button id="explore-tab" role="tab" type="button" aria-selected="false" aria-controls="docent-explore" tabindex="-1">작품 탐색</button>
         <button id="history-tab" role="tab" type="button" aria-selected="false" aria-controls="docent-history" tabindex="-1">히스토리 <span id="history-count"></span></button>
       </div>
       <section id="docent-conversation" class="docent-conversation" role="tabpanel" aria-labelledby="conversation-tab">
@@ -47,6 +49,10 @@
           <p class="docent-eyebrow">지금 보고 있는 작품</p>
           <h3 id="docent-artwork-title"></h3>
           <p id="docent-artwork-credit"></p>
+          <div class="docent-suggestions docent-guide-action">
+            <button id="docent-guide" type="button" disabled>작품 감상 가이드</button>
+          </div>
+          <p id="docent-service-note" class="docent-service-note" role="status" hidden></p>
         </div>
         <div id="docent-messages" class="docent-messages" role="log" aria-label="현재 작품의 대화" aria-live="polite" aria-relevant="additions"></div>
         <form id="docent-form" class="docent-form">
@@ -57,6 +63,17 @@
           </div>
           <p id="docent-save-note" class="docent-preview-note" role="status">대화는 이 브라우저에 저장됩니다</p>
         </form>
+      </section>
+      <section id="docent-explore" class="docent-explore" role="tabpanel" aria-labelledby="explore-tab" hidden>
+        <form id="artwork-search-form" class="artwork-search-form">
+          <label class="gallery-sr" for="artwork-search-query">찾고 싶은 작품의 조건</label>
+          <div class="artwork-search-input">
+            <textarea id="artwork-search-query" rows="2" maxlength="1000" placeholder="예: 19세기 프랑스 인상주의 풍경화"></textarea>
+            <button id="artwork-search-send" type="submit" disabled>찾기</button>
+          </div>
+        </form>
+        <p id="artwork-search-status" class="artwork-search-status" role="status">찾고 싶은 작품을 말해주세요.</p>
+        <div id="artwork-search-results" class="artwork-search-results" aria-label="조건에 맞는 작품"></div>
       </section>
       <section id="docent-history" class="docent-history" role="tabpanel" aria-labelledby="history-tab" hidden>
         <div class="docent-history-intro"><p>다시 만나는 작품과 대화</p><span>기록을 누르면 별도 창에서 열립니다.</span></div>
